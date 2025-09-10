@@ -1,5 +1,3 @@
---registro de que um treino foi executado em um dia expecifico
-
 CREATE TABLE t_workout_session (
                                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    session_date DATE NOT NULL,

@@ -1,5 +1,3 @@
---registro de cada serie(repeticoes e peso)
-
 CREATE TABLE t_logged_set (
                               id BIGINT PRIMARY KEY AUTO_INCREMENT,
                               set_number INT NOT NULL,

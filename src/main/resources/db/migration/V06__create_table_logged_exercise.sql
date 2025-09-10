@@ -1,5 +1,3 @@
---regisrto de um exercicio que foi executado na sessao de treino
-
 CREATE TABLE t_logged_exercise (
                                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    session_id BIGINT NOT NULL,

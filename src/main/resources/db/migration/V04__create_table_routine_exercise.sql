@@ -1,5 +1,3 @@
--- tablea de relacionamento para a rotinas(treino a, b, ...) e exercicios(supino, desenvolvimento), n x n
-
 CREATE TABLE t_routine_exercise (
                                     routine_id BIGINT NOT NULL,
                                     exercise_id BIGINT NOT NULL,

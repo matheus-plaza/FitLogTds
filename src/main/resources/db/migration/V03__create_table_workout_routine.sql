@@ -1,5 +1,3 @@
---treino a ou treino b ...
-
 CREATE TABLE t_workout_routine (
                                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    name VARCHAR(100) NOT NULL,

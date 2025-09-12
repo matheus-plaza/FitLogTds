@@ -74,6 +74,10 @@
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -111,6 +115,23 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <!-- A versão deve ser a mesma que você já tem no projeto.
+                     Seu log anterior mostrou 11.7.2 -->
+                <version>11.7.2</version>
+                <configuration>
+                    <!-- Dados extraídos do seu application.properties -->
+                    <url>jdbc:mysql://localhost:3306/fitlogdb?useTimezone=true&amp;serverTimezone=UTC</url>
+                    <user>root</user>
+                    <password>admin</password>
+                    <!-- Adicionado para permitir a execução do 'clean' -->
+                    <cleanDisabled>false</cleanDisabled>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

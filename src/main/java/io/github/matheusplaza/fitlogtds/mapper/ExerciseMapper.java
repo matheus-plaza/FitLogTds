@@ -14,6 +14,8 @@ public interface ExerciseMapper {
     @Mapping(source = "createdBy.id", target = "createdByUserId")
     ExerciseDTO toDTO(Exercise exercise);
 
+    Exercise toEntity(ExerciseDTO exerciseDTO);
+
     List<ExerciseDTO> toDTO(List<Exercise> exercises);
 
     Set<ExerciseDTO> toDTO(Set<Exercise> exercises);

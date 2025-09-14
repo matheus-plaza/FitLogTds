@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -18,13 +19,19 @@ public class ExerciseService {
     private final ExerciseRepository repository;
     private final ExerciseMapper mapper;
 
+    //metodo auxiliar
+    public Exercise findById(Long exerciseId) {
+        return repository.findById(exerciseId)
+                        .orElseThrow(() ->  new NotFoundException("Exercicio nao encontrado"));
+
+    }
+
     public List<ExerciseDTO> getListExercises() {
         return repository.findAll().stream().map(mapper::toDTO).toList();
     }
 
     public ExerciseDTO getExercise(Long id) {
-                return repository.findById(id).map(mapper::toDTO)
-                        .orElseThrow(() ->  new NotFoundException("Exercicio nao encontrado"));
+                return mapper.toDTO(findById(id));
     }
 
     public ExerciseDTO saveExercise(ExerciseDTO exerciseDTO) {
@@ -47,4 +54,7 @@ public class ExerciseService {
         repository.deleteById(id);
     }
 
+    public List<Exercise> getListExercise(Set<Long> ids) {
+        return repository.findAllById(ids);
+    }
 }

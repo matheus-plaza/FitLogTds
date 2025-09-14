@@ -1,4 +1,4 @@
-package io.github.matheusplaza.fitlogtds.Controller;
+package io.github.matheusplaza.fitlogtds.controller;
 
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 

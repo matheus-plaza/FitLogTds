@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/exercises")
 @RequiredArgsConstructor
-public class ExerciseController implements io.github.matheusplaza.fitlogtds.Controller.GenericController {
+public class ExerciseController implements GenericController {
 
     private final ExerciseService exerciseService;
 

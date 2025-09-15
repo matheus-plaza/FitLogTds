@@ -30,7 +30,7 @@ public class WorkoutSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "workoutSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoggedExercise> loggedExercises = new ArrayList<>();
 
 }

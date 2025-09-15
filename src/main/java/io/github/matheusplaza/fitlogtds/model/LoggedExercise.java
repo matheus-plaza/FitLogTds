@@ -18,14 +18,16 @@ public class LoggedExercise {
     @EqualsAndHashCode.Include
     private Long id;
 
+    // CORREÇÃO AQUI
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exercise_id")
-    private WorkoutSession workoutSession;
+    @JoinColumn(name = "session_id")
+    private WorkoutSession session;
+
+    // RELACIONAMENTO FALTANDO ADICIONADO AQUI
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercise_id") // A coluna que aponta para o exercício
+    private Exercise exercise;
 
     @OneToMany(mappedBy = "loggedExercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoggedSet> sets = new ArrayList<>();
 }
-
-
-
-

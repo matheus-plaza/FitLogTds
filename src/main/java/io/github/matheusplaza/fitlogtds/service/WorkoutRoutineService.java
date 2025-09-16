@@ -1,6 +1,5 @@
 package io.github.matheusplaza.fitlogtds.service;
 
-import io.github.matheusplaza.fitlogtds.controller.dto.ExerciseDTO;
 import io.github.matheusplaza.fitlogtds.controller.dto.WorkoutRoutineCreateDTO;
 import io.github.matheusplaza.fitlogtds.controller.dto.WorkoutRoutineDTO;
 import io.github.matheusplaza.fitlogtds.controller.dto.WorkoutRoutineUpdate;
@@ -16,8 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +32,6 @@ public class WorkoutRoutineService {
                 .orElseThrow(() -> new NotFoundException("Rotina de id: " + id + " nao encontrada"));
     }
 
-    //TODO: PROTEGER (DATA TENANCY). Este método deve ser filtrado para retornar dados apenas para o usuário que esta autenticado. Será implementado no checkpoint de segurança
     @Transactional
     public WorkoutRoutineDTO getRoutine(Long id) {
         return mapper.toDTO(findById(id));

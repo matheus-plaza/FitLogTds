@@ -13,8 +13,6 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {ExerciseMapper.class})
 public interface WorkoutSessionMapper {
 
-    // --- Mapeamentos Principais ---
-
     WorkoutSessionDTO toDTO(WorkoutSession workoutSession);
 
     List<WorkoutSessionDTO> toDTO(List<WorkoutSession> workoutSessions);

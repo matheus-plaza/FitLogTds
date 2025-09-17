@@ -8,7 +8,7 @@ import io.github.matheusplaza.fitlogtds.exceptions.NotFoundException;
 import io.github.matheusplaza.fitlogtds.mapper.WorkoutSessionMapper;
 import io.github.matheusplaza.fitlogtds.model.*;
 import io.github.matheusplaza.fitlogtds.repository.WorkoutSessionRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,12 +86,37 @@ public class WorkoutSessionService {
 
 
     //TODO: PROTEGER (DATA TENANCY). Este método deve ser filtrado para retornar dados apenas para o usuário que esta autenticado. Será implementado no checkpoint de segurança
+    @Transactional(readOnly = true)
     public List<WorkoutSessionDTO> getListSessions() {
-        return mapper.toDTO(repository.findAllWithDetails());
+        List<WorkoutSession> sessions = repository.findAllWithExercises();
+        addSets(sessions);
+        return mapper.toDTO(sessions);
+    }
+
+    //Single Responsibility Principle(adiciona a lista de sets para cada loggedExercise)
+    private void addSets(List<WorkoutSession> sessions) {
+        if (sessions == null || sessions.isEmpty()) {
+            return;
+        }
+
+        List<LoggedExercise> allLoggedExercises = sessions.stream()
+                .flatMap(session -> session.getLoggedExercises().stream())
+                .toList();
+
+        if (!allLoggedExercises.isEmpty()) {
+            repository.findLoggedExercisesWithSets(allLoggedExercises);
+        }
     }
 
     public WorkoutSessionDTO getSession(Long id) {
-        return repository.findByIdWithDetails(id).map(mapper::toDTO).orElseThrow(() -> new NotFoundException("Sessao nao encontrada"));
+        WorkoutSession session = repository.findByIdWithExercises(id)
+                .orElseThrow(() -> new NotFoundException("Sessao nao encontrada"));
+
+        List<LoggedExercise> exercisesWithSets = repository.findLoggedExercisesWithSetsBySessionId(id);
+
+        session.setLoggedExercises(exercisesWithSets);
+
+        return mapper.toDTO(session);
     }
 
     @Transactional
@@ -111,7 +136,7 @@ public class WorkoutSessionService {
 
         sessionEntity.getLoggedExercises().addAll(loggedExercises);
 
-        //como o relacionamento eu configurei como cascade, ao salvar a sessao, os "filhos" da WorkouSession que são uma lista de LoggedExercise que nela contem uma lista de LoggedSet, ambos sao salvos automaticamente junto com a sessao
+        //como eu configurei o relacionamento como cascade, ao salvar a sessao, os "filhos" da WorkouSession que são uma lista de LoggedExercise que nela contem uma lista de LoggedSet, ambos sao salvos automaticamente junto com a sessao
         return mapper.toDTO(sessionEntity);
         //transacional fecha a transacao e faz o save automatico
     }

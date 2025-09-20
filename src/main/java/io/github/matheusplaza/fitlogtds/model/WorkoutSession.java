@@ -33,4 +33,8 @@ public class WorkoutSession {
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoggedExercise> loggedExercises = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "workout_routine_id")
+    private WorkoutRoutine workoutRoutine;
+
 }

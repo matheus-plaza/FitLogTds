@@ -14,6 +14,8 @@ public record WorkoutSessionCreateDTO(
         @NotNull
         Long userId,
 
+        Long workoutRoutineId,
+
         List<LoggedExerciseCreateDTO> loggedExercises
 ) {
 }

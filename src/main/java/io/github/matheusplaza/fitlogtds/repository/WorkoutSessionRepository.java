@@ -13,11 +13,9 @@ import java.util.Optional;
 
 public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession,Long> {
 
-    // Query 1: Busca as sessões e o PRIMEIRO nível de filhos (loggedExercises)
     @Query("SELECT DISTINCT ws FROM WorkoutSession ws LEFT JOIN FETCH ws.loggedExercises WHERE ws.id = :id")
     Optional<WorkoutSession> findByIdWithExercises(Long id);
 
-    // Query 2: Busca os LoggedExercises (já com a sessão) e o SEGUNDO nível de filhos (sets)
     @Query("SELECT DISTINCT le FROM LoggedExercise le LEFT JOIN FETCH le.sets WHERE le.session.id = :sessionId")
     List<LoggedExercise> findLoggedExercisesWithSetsBySessionId(Long sessionId);
 
@@ -40,7 +38,7 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession,L
         AVG(ws.durationInMinutes)
     )
     FROM WorkoutSession ws
-    JOIN ws.workoutRoutine wr
+    LEFT JOIN ws.workoutRoutine wr
     WHERE ws.user.id = :userId AND ws.sessionDate BETWEEN :start AND :end
     GROUP BY wr.name
 """)

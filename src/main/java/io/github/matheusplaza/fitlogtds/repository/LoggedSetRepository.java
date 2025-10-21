@@ -12,21 +12,18 @@ import java.util.List;
 
 public interface LoggedSetRepository extends JpaRepository<WorkoutSession, Long> {
 
-    // No LoggedSetRepository.java
-    @Query("SELECT SUM(s.weight * s.repetitions) FROM LoggedSet s " +
-            "WHERE s.loggedExercise.session.user.id = :userId " +
-            "AND s.loggedExercise.session.sessionDate BETWEEN :start AND :end")
-    BigDecimal calculateTotalVolume(@Param("userId") Long userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
-
     @Query("SELECT new io.github.matheusplaza.fitlogtds.controller.dto.ExerciseAnalyticsDTO(" +
-            "le.exercise.id, le.exercise.name, MAX(s.weight), :defaultWeight, MAX(le.session.sessionDate)) " +
+            "le.exercise.id, le.exercise.name, MAX(s.weight), MAX(s.weight), MAX(le.session.sessionDate)) " +
             "FROM LoggedSet s JOIN s.loggedExercise le " +
-            "WHERE le.session.user.id = :userId " +
+            "JOIN le.session ws " + // Adicionei um join na sessão aqui
+            "WHERE ws.user.id = :userId " + // E filtrei pelo user da sessão
             "GROUP BY le.exercise.id, le.exercise.name")
-    List<ExerciseAnalyticsDTO> findExerciseAnalyticsWithDefaultWeight(@Param("userId") Long userId, @Param("defaultWeight") BigDecimal defaultWeight);
+    List<ExerciseAnalyticsDTO> findExerciseAnalytics(@Param("userId") Long userId);
 
-    default List<ExerciseAnalyticsDTO> findExerciseAnalytics(Long userId) {
-        // Ele simplesmente chama o metodo da query passando o valor zero fixo.
-        return findExerciseAnalyticsWithDefaultWeight(userId, BigDecimal.ZERO);
-    }
+    @Query("SELECT SUM(ls.weight * ls.repetitions) " +
+            "FROM LoggedSet ls " +
+            "JOIN ls.loggedExercise le " +
+            "JOIN le.session s " +
+            "WHERE s.user.id = :userId AND s.sessionDate BETWEEN :start AND :end")
+    BigDecimal calculateTotalVolume(@Param("userId") Long userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
 }

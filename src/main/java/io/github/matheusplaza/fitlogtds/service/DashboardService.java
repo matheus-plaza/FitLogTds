@@ -31,7 +31,7 @@ public class DashboardService {
 
         BigDecimal totalVolumeLast30Days = Optional.ofNullable(
                 loggedSetRepository.calculateTotalVolume(userId, startDate, endDate)
-        ).orElse(BigDecimal.ZERO); // Garante que não será nulo
+        ).orElse(BigDecimal.ZERO);
 
         List<RoutineStatsDTO> routineDistribution = workoutSessionRepository.findRoutineStats(userId, startDate, endDate);
 

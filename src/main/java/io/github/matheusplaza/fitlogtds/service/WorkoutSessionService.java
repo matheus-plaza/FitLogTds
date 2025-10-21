@@ -23,6 +23,7 @@ public class WorkoutSessionService {
     private final WorkoutSessionMapper mapper;
     private final UserService userService;
     private final ExerciseService exerciseService;
+    private final WorkoutRoutineService workoutRoutineService;
 
     //metodo auxiliar
     public WorkoutSession findById(Long id) {
@@ -38,11 +39,21 @@ public class WorkoutSessionService {
                 .map(exerciseDTO -> buildLoggedExercise(exerciseDTO, sessionEntity))
                 .collect(Collectors.toList());
 
+        sessionEntity.setWorkoutRoutine(linkSession(dto.workoutRoutineId()));
+
         sessionEntity.setLoggedExercises(loggedExercises);
 
         WorkoutSession savedSession = repository.save(sessionEntity);
 
         return mapper.toDTO(savedSession);
+    }
+
+    //Single Responsibility Principle(buscar a rotina)
+    private WorkoutRoutine linkSession(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return workoutRoutineService.findById(id);
     }
 
     //Single Responsibility Principle(Criar um WorkoutSession)

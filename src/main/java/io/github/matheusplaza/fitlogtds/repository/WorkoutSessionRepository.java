@@ -21,11 +21,16 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession,L
     @Query("SELECT DISTINCT le FROM LoggedExercise le LEFT JOIN FETCH le.sets WHERE le.session.id = :sessionId")
     List<LoggedExercise> findLoggedExercisesWithSetsBySessionId(Long sessionId);
 
-    // Query para a lista principal
-    @Query("SELECT DISTINCT ws FROM WorkoutSession ws LEFT JOIN FETCH ws.loggedExercises")
+    @Query("SELECT DISTINCT ws FROM WorkoutSession ws " +
+            "LEFT JOIN FETCH ws.loggedExercises " +
+            "LEFT JOIN FETCH ws.user " + // Adicione esta linha
+            "ORDER BY ws.sessionDate DESC") // Bônus: ordene o histórico
     List<WorkoutSession> findAllWithExercises();
 
-    @Query("SELECT DISTINCT le FROM LoggedExercise le LEFT JOIN FETCH le.sets WHERE le IN :loggedExercises")
+    @Query("SELECT DISTINCT le FROM LoggedExercise le " +
+            "LEFT JOIN FETCH le.sets " +
+            "LEFT JOIN FETCH le.exercise " +
+            "WHERE le IN :loggedExercises")
     List<LoggedExercise> findLoggedExercisesWithSets(List<LoggedExercise> loggedExercises);
 
     @Query("""

@@ -11,6 +11,7 @@ import io.github.matheusplaza.fitlogtds.repository.WorkoutSessionRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import io.github.matheusplaza.fitlogtds.service.UserContextService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,9 +22,9 @@ public class WorkoutSessionService {
 
     private final WorkoutSessionRepository repository;
     private final WorkoutSessionMapper mapper;
-    private final UserService userService;
     private final ExerciseService exerciseService;
     private final WorkoutRoutineService workoutRoutineService;
+    private final UserContextService userContextService;
 
     //metodo auxiliar
     public WorkoutSession findById(Long id) {
@@ -32,19 +33,18 @@ public class WorkoutSessionService {
 
     @Transactional
     public WorkoutSessionDTO saveSession(WorkoutSessionCreateDTO dto) {
+        User currentUser = userContextService.getCurrentUser();
 
-        WorkoutSession sessionEntity = buildWorkoutSession(dto);
+        WorkoutSession sessionEntity = buildWorkoutSession(dto, currentUser); // Passar currentUser
 
         List<LoggedExercise> loggedExercises = dto.loggedExercises().stream()
                 .map(exerciseDTO -> buildLoggedExercise(exerciseDTO, sessionEntity))
                 .collect(Collectors.toList());
 
         sessionEntity.setWorkoutRoutine(linkSession(dto.workoutRoutineId()));
-
         sessionEntity.setLoggedExercises(loggedExercises);
 
         WorkoutSession savedSession = repository.save(sessionEntity);
-
         return mapper.toDTO(savedSession);
     }
 
@@ -57,14 +57,12 @@ public class WorkoutSessionService {
     }
 
     //Single Responsibility Principle(Criar um WorkoutSession)
-    private WorkoutSession buildWorkoutSession(WorkoutSessionCreateDTO dto) {
-        User user = userService.findById(dto.userId());
-
+    private WorkoutSession buildWorkoutSession(WorkoutSessionCreateDTO dto, User currentUser) {
         WorkoutSession sessionEntity = new WorkoutSession();
         sessionEntity.setSessionDate(dto.sessionDate());
         sessionEntity.setDurationInMinutes(dto.durationInMinutes());
         sessionEntity.setNotes(dto.notes());
-        sessionEntity.setUser(user);
+        sessionEntity.setUser(currentUser); // Setar o usuário logado
         return sessionEntity;
     }
     //Single Responsibility Principle(Criar um LoggedExercise)
@@ -95,11 +93,10 @@ public class WorkoutSessionService {
         return setEntity;
     }
 
-
-    //TODO: PROTEGER (DATA TENANCY). Este método deve ser filtrado para retornar dados apenas para o usuário que esta autenticado. Será implementado no checkpoint de segurança
     @Transactional(readOnly = true)
     public List<WorkoutSessionDTO> getListSessions() {
-        List<WorkoutSession> sessions = repository.findAllWithExercises();
+        User currentUser = userContextService.getCurrentUser();
+        List<WorkoutSession> sessions = repository.findAllByUserWithExercises(currentUser.getId());
         addSets(sessions);
         return mapper.toDTO(sessions);
     }
@@ -120,42 +117,52 @@ public class WorkoutSessionService {
     }
 
     public WorkoutSessionDTO getSession(Long id) {
+        User currentUser = userContextService.getCurrentUser();
+
         WorkoutSession session = repository.findByIdWithExercises(id)
-                .orElseThrow(() -> new NotFoundException("Sessao nao encontrada"));
+                .orElseThrow(() -> new NotFoundException("Sessão não encontrada"));
 
-        List<LoggedExercise> exercisesWithSets = repository.findLoggedExercisesWithSetsBySessionId(id);
-
-        session.setLoggedExercises(exercisesWithSets);
+        if (!session.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Esta sessão não pertence a qem esta logado.");
+        }
 
         return mapper.toDTO(session);
     }
 
-    @Transactional
-    public WorkoutSessionDTO updateSession(Long id, WorkoutSessionCreateDTO dto) {
 
-        WorkoutSession sessionEntity = findById(id);
+@Transactional
+public WorkoutSessionDTO updateSession(Long id, WorkoutSessionCreateDTO dto) {
+    User currentUser = userContextService.getCurrentUser();
 
-        sessionEntity.setSessionDate(dto.sessionDate());
-        sessionEntity.setDurationInMinutes(dto.durationInMinutes());
-        sessionEntity.setNotes(dto.notes());
+    WorkoutSession sessionEntity = findById(id);
 
-        sessionEntity.getLoggedExercises().clear();
-
-        List<LoggedExercise> loggedExercises = dto.loggedExercises().stream()
-                .map(exerciseDTO -> buildLoggedExercise(exerciseDTO, sessionEntity))
-                .toList();
-
-        sessionEntity.getLoggedExercises().addAll(loggedExercises);
-
-        //como eu configurei o relacionamento como cascade, ao salvar a sessao, os "filhos" da WorkouSession que são uma lista de LoggedExercise que nela contem uma lista de LoggedSet, ambos sao salvos automaticamente junto com a sessao
-        return mapper.toDTO(sessionEntity);
-        //transacional fecha a transacao e faz o save automatico
+    if (!sessionEntity.getUser().getId().equals(currentUser.getId())) {
+        throw new RuntimeException("Acesso negado: Você não pode alterar sessões de outro usuário.");
     }
 
+    sessionEntity.setSessionDate(dto.sessionDate());
+    sessionEntity.setDurationInMinutes(dto.durationInMinutes());
+    sessionEntity.setNotes(dto.notes());
+
+    sessionEntity.getLoggedExercises().clear();
+
+    List<LoggedExercise> loggedExercises = dto.loggedExercises().stream()
+            .map(exerciseDTO -> buildLoggedExercise(exerciseDTO, sessionEntity))
+            .toList();
+
+    sessionEntity.getLoggedExercises().addAll(loggedExercises);
+
+    return mapper.toDTO(sessionEntity);
+}
     @Transactional
     public void deleteSession(Long id) {
-
+        User currentUser = userContextService.getCurrentUser();
         WorkoutSession ws = findById(id);
+
+        if (!ws.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Você não pode deletar sessões de outro usuário.");
+        }
+
         repository.delete(ws);
     }
 }

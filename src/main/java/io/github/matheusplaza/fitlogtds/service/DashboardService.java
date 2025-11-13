@@ -3,6 +3,7 @@ package io.github.matheusplaza.fitlogtds.service;
 import io.github.matheusplaza.fitlogtds.controller.dto.DashboardDTO;
 import io.github.matheusplaza.fitlogtds.controller.dto.ExerciseAnalyticsDTO;
 import io.github.matheusplaza.fitlogtds.controller.dto.RoutineStatsDTO;
+import io.github.matheusplaza.fitlogtds.model.User;
 import io.github.matheusplaza.fitlogtds.repository.LoggedSetRepository;
 import io.github.matheusplaza.fitlogtds.repository.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,13 @@ public class DashboardService {
 
     private final WorkoutSessionRepository workoutSessionRepository;
     private final LoggedSetRepository loggedSetRepository;
+    private final UserContextService userContextService;
 
     @Transactional(readOnly = true)
-    public DashboardDTO getDashboardData(Long userId) {
+    public DashboardDTO getDashboardData() {
+
+        User currentUser = userContextService.getCurrentUser();
+        Long userId = currentUser.getId();
 
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(30);

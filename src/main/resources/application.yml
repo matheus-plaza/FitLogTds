@@ -16,3 +16,10 @@ spring:
       ddl-auto: validate
     properties:
       hibernate.format_sql: true
+
+api:
+  security:
+    token:
+      secret: 123
+    google:
+      client-id: 870642638434-tmj6b015q6t07elp2cpdp6a05mivbaj6.apps.googleusercontent.com

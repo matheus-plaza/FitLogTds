@@ -13,7 +13,9 @@ import java.util.Optional;
 
 public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession,Long> {
 
-    @Query("SELECT DISTINCT ws FROM WorkoutSession ws LEFT JOIN FETCH ws.loggedExercises WHERE ws.id = :id")
+    @Query("SELECT DISTINCT ws FROM WorkoutSession ws " +
+            "LEFT JOIN FETCH ws.loggedExercises " +
+            "WHERE ws.id = :id")
     Optional<WorkoutSession> findByIdWithExercises(Long id);
 
     @Query("SELECT DISTINCT le FROM LoggedExercise le LEFT JOIN FETCH le.sets WHERE le.session.id = :sessionId")
@@ -21,9 +23,10 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession,L
 
     @Query("SELECT DISTINCT ws FROM WorkoutSession ws " +
             "LEFT JOIN FETCH ws.loggedExercises " +
-            "LEFT JOIN FETCH ws.user " + // Adicione esta linha
-            "ORDER BY ws.sessionDate DESC") // Bônus: ordene o histórico
-    List<WorkoutSession> findAllWithExercises();
+            "LEFT JOIN FETCH ws.user " +
+            "WHERE ws.user.id = :userId " +
+            "ORDER BY ws.sessionDate DESC")
+    List<WorkoutSession> findAllByUserWithExercises(@Param("userId") Long userId);
 
     @Query("SELECT DISTINCT le FROM LoggedExercise le " +
             "LEFT JOIN FETCH le.sets " +

@@ -12,8 +12,5 @@ public record WorkoutRoutineCreateDTO(
 
         String description,
 
-        @NotNull
-        Long userId,
-
-        Set<Long> exerciseIds // Apenas os IDs dos exercícios
+        Set<Long> exerciseIds
 ) {}

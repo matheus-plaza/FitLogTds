@@ -18,11 +18,9 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    //TODO: Temporariamente, vamos passar o ID do usuário pela URL.
-    // Quando eu implementar a segurança, este ID virá do usuário autenticado.
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<DashboardDTO> getDashboard(@PathVariable Long userId) {
-        DashboardDTO dashboardData = dashboardService.getDashboardData(userId);
+    @GetMapping
+    public ResponseEntity<DashboardDTO> getDashboard() {
+        DashboardDTO dashboardData = dashboardService.getDashboardData();
         return ResponseEntity.ok(dashboardData);
     }
 }

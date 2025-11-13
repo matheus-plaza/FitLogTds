@@ -11,9 +11,6 @@ public record WorkoutSessionCreateDTO(
         Integer durationInMinutes,
         String notes,
 
-        @NotNull
-        Long userId,
-
         Long workoutRoutineId,
 
         List<LoggedExerciseCreateDTO> loggedExercises

@@ -22,9 +22,8 @@ public class WorkoutRoutineService {
 
     private final WorkoutRoutineRepository routineRepository;
     private final WorkoutRoutineMapper mapper;
-    private final UserService userService;
     private final ExerciseService exerciseService;
-
+    private final UserContextService userContextService;
 
     //metodo auxiliar
     public WorkoutRoutine findById(Long id) {
@@ -34,37 +33,49 @@ public class WorkoutRoutineService {
 
     @Transactional
     public WorkoutRoutineDTO getRoutine(Long id) {
-        return mapper.toDTO(findById(id));
-    }
+        User currentUser = userContextService.getCurrentUser();
 
-    //TODO: PROTEGER (DATA TENANCY). Este método deve ser filtrado para retornar dados apenas para o usuário que esta autenticado. Será implementado no checkpoint de segurança
+        WorkoutRoutine wr = findById(id);
+
+        if (!wr.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Esta rotina não pertence a você.");
+        }
+
+        return mapper.toDTO(wr);
+    }
+    @Transactional
     public List<WorkoutRoutineDTO> getListRoutines(){
-        return mapper.toDTO(routineRepository.findAllWithExercises());
+        User currentUser = userContextService.getCurrentUser();
+        return mapper.toDTO(routineRepository.findAllWithExercises(currentUser.getId()));
     }
 
     @Transactional
     public WorkoutRoutineDTO saveRoutine(WorkoutRoutineCreateDTO dto) {
-        User user = userService.findById(dto.userId());
+        User currentUser = userContextService.getCurrentUser();
 
         WorkoutRoutine routineEntity = new WorkoutRoutine();
         routineEntity.setName(dto.name());
         routineEntity.setDescription(dto.description());
-        routineEntity.setUser(user);
+        routineEntity.setUser(currentUser);
 
-        //por hora, o usuario devera adicionar apenas exercicios que ja estao criados, estou pensando em uma lista de exercicios e um botao de "+" para adicionar, inspirado em adicionar dependencia no spring initializr
         if (dto.exerciseIds() != null && !dto.exerciseIds().isEmpty()) {
             List<Exercise> exercises = exerciseService.getListExercise(dto.exerciseIds());
             routineEntity.setExercises(new HashSet<>(exercises));
         }
 
         WorkoutRoutine savedRoutine = routineRepository.save(routineEntity);
-
         return mapper.toDTO(savedRoutine);
-    }
 
-    @Transactional
-    public WorkoutRoutineDTO updateRoutine(Long id, WorkoutRoutineUpdate routine){
+        //por hora, o usuario devera adicionar apenas exercicios que ja estao criados, estou pensando em uma lista de exercicios e um botao de "+" para adicionar, inspirado em adicionar dependencia no spring initializr
+    }
+    public WorkoutRoutineDTO updateRoutine(Long id, WorkoutRoutineUpdate routine) {
+        User currentUser = userContextService.getCurrentUser();
         WorkoutRoutine wr = findById(id);
+
+        if (!wr.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Você não pode alterar a rotina de outro usuário.");
+        }
+
         if (routine.name() != null) {
             wr.setName(routine.name());
         }
@@ -74,19 +85,39 @@ public class WorkoutRoutineService {
         return mapper.toDTO(wr);
     }
 
-    public void deleteRoutine(Long id){
-        routineRepository.deleteById(id);
+    @Transactional
+    public void deleteRoutine(Long id) {
+        User currentUser = userContextService.getCurrentUser();
+        WorkoutRoutine wr = findById(id);
+
+        if (!wr.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Você não pode deletar a rotina de outro usuário.");
+        }
+
+        routineRepository.delete(wr);
     }
 
     @Transactional
     public void addExerciseRoutine(Long routineId, Long exerciseId) {
+        User currentUser = userContextService.getCurrentUser();
         WorkoutRoutine wr = findById(routineId);
+
+        if (!wr.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Você não pode alterar a rotina de outro usuário.");
+        }
+
         wr.getExercises().add(exerciseService.findById(exerciseId));
     }
 
     @Transactional
     public void deleteExerciseRoutine(Long routineId, Long exerciseId) {
+        User currentUser = userContextService.getCurrentUser();
         WorkoutRoutine wr = findById(routineId);
+
+        if (!wr.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Acesso negado: Você não pode alterar a rotina de outro usuário.");
+        }
+
         wr.getExercises().remove(exerciseService.findById(exerciseId));
     }
 }
